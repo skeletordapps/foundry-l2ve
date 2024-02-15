@@ -2,5 +2,15 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+remappings = [
+  '@openzeppelin/contracts=lib/openzeppelin-contracts/contracts/',
+  '@uni-v2/contracts=lib/v2-periphery/contracts/',
+]
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+base = "${BASE_RPC_URL}"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+base = { key = "${NEW_BASESCAN_API_KEY}" }
