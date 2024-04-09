@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.24;
 
 interface IL2VEFlipCoin {
     event ticketsSold(address indexed wallet, uint256 numOfTickets);

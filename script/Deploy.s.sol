@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.24;
 
 import {Script} from "forge-std/Script.sol";
 import {L2VE} from "../src/L2VE.sol";

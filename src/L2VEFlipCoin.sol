@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.24;
 
 import {console2} from "forge-std/Test.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -12,10 +12,10 @@ import {IL2VEFlipCoin} from "./interfaces/IL2VEFlipCoin.sol";
 contract L2VEFlipCoin is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for ERC20;
 
-    address public l2veAddress = 0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4;
-    address public multisig = 0x7B2871c2dcad6f2B396fE7E1a087Ae6170f4131C;
     uint256 public price = 100 ether;
     uint256 public maxTicketsPerTime = 5;
+    address public l2veAddress;
+    address public multisig;
     uint256 public accumulatedLosses;
     uint256 public totalWins;
     uint256 public totalLosses;
@@ -23,7 +23,9 @@ contract L2VEFlipCoin is Ownable, Pausable, ReentrancyGuard {
     mapping(address wallet => uint256 numberOfTickets) public tickets;
     mapping(address wallet => uint256 amount) public rewards;
 
-    constructor() Ownable(multisig) {
+    constructor(address _l2veAddress, address _multisig) Ownable(_multisig) {
+        l2veAddress = _l2veAddress;
+        multisig = _multisig;
         _pause();
     }
 
