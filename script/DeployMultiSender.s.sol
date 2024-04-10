@@ -14,4 +14,6 @@ contract DeployMultiSender is Script {
 
         return l2veMultiSender;
     }
+
+    function testMock() public {}
 }

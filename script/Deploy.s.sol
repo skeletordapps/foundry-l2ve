@@ -18,4 +18,6 @@ contract Deploy is Script {
 
         return l2ve;
     }
+
+    function testMock() public {}
 }

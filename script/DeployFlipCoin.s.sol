@@ -29,4 +29,6 @@ contract DeployFlipCoin is Script {
 
         return l2veFlipCoin;
     }
+
+    function testMock() public {}
 }

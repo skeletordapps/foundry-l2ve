@@ -14,4 +14,6 @@ contract DeployLocker is Script {
 
         return l2veLocker;
     }
+
+    function testMock() public {}
 }

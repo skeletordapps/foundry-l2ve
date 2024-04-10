@@ -68,4 +68,6 @@ contract DeployNFT is Script {
 
         return permittedTokens;
     }
+
+    function testMock() public {}
 }
