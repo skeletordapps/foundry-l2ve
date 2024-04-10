@@ -25,6 +25,7 @@ contract L2VENFTTest is Test {
     address bob;
     address mary;
     address john;
+    address charles;
 
     function setUp() public {
         RPC_URL = vm.envString("BASE_RPC_URL");
@@ -44,6 +45,9 @@ contract L2VENFTTest is Test {
 
         john = vm.addr(3);
         vm.label(john, "john");
+
+        charles = vm.addr(4);
+        vm.label(charles, "charles");
     }
 
     function testConstructor() external {
@@ -377,5 +381,58 @@ contract L2VENFTTest is Test {
         string memory currentTokenURI = nft.tokenURI(1);
 
         assertEq(expectedTokenURI, currentTokenURI);
+    }
+
+    function testManyCanMintInBothRounds() external tokensPermitted initialized {
+        address[] memory permittedTokens = nft.getPermittedTokens();
+        deal(address(nft.L2VE()), bob, nft.MIN_AMOUNT_HOLD() * 1e18);
+        deal(permittedTokens[1], mary, nft.MIN_AMOUNT_HOLD() * 1e9);
+        deal(permittedTokens[2], john, nft.MIN_AMOUNT_HOLD() * 1e18);
+
+        assertTrue(nft.isEligibleForRoundOne(bob));
+        assertTrue(nft.isEligibleForRoundOne(mary));
+        assertTrue(nft.isEligibleForRoundOne(john));
+        assertFalse(nft.isEligibleForRoundOne(charles));
+
+        vm.startPrank(bob);
+        nft.mint(bob);
+        vm.stopPrank();
+
+        vm.startPrank(mary);
+        nft.mint(mary);
+        vm.stopPrank();
+
+        vm.startPrank(john);
+        nft.mint(john);
+        vm.stopPrank();
+
+        assertEq(nft.tokens(bob), 5);
+        assertEq(nft.tokens(mary), 2);
+        assertEq(nft.tokens(john), 2);
+        assertEq(nft.totalSupply(), 9);
+
+        vm.warp(nft.roundOneFinishAt() + 1 hours);
+
+        assertTrue(nft.isEligibleForRoundTwo(bob));
+        assertTrue(nft.isEligibleForRoundTwo(mary));
+        assertTrue(nft.isEligibleForRoundTwo(john));
+        assertFalse(nft.isEligibleForRoundTwo(charles));
+
+        vm.startPrank(bob);
+        nft.mint(bob);
+        vm.stopPrank();
+
+        vm.startPrank(mary);
+        nft.mint(mary);
+        vm.stopPrank();
+
+        vm.startPrank(john);
+        nft.mint(john);
+        vm.stopPrank();
+
+        assertEq(nft.tokens(bob), 7);
+        assertEq(nft.tokens(mary), 4);
+        assertEq(nft.tokens(john), 4);
+        assertEq(nft.totalSupply(), 15);
     }
 }
