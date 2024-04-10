@@ -33,7 +33,7 @@ contract L2VENFTTest is Test {
         vm.selectFork(fork);
 
         deployer = new DeployNFT();
-        nft = deployer.run();
+        nft = deployer.run(true);
 
         owner = nft.owner();
 

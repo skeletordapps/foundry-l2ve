@@ -12,6 +12,7 @@ contract L2VEMultiSender {
         for (uint256 i = 0; i < recipients.length; i++) {
             payable(recipients[i]).transfer(values[i]);
         }
+
         uint256 balance = address(this).balance;
         if (balance > 0) {
             payable(msg.sender).transfer(balance);

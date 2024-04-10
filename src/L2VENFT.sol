@@ -25,7 +25,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
     uint256 private _tokenIdCounter;
     uint256 public constant MIN_AMOUNT_HOLD = 69;
     uint256 public constant MAX_SUPPLY = 10_000;
-    ERC20 public constant L2VE = ERC20(0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4);
+    ERC20 public immutable L2VE;
 
     uint256 public roundOneFinishAt;
     uint256 public roundTwoFinishAt;
@@ -40,7 +40,8 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
 
     /// ===== 2. Lifecycle Methods =====
 
-    constructor() ERC721("L2VE NFT", "L2VE") Ownable(msg.sender) {
+    constructor(address _l2ve) ERC721("L2VE NFT", "L2VE") Ownable(msg.sender) {
+        L2VE = ERC20(_l2ve);
         baseURI = "ipfs://Qmc1jomFCj4pcw95EuW3o5Pp7ERsL8qEcKNrDEi7iiQRsT/"; // Set initial baseURI
         _tokenIdCounter++; // Start token ID at 1
         pause(); // Initialize it as paused

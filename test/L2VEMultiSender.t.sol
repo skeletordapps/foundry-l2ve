@@ -19,6 +19,8 @@ contract L2VEMultiSenderTest is Test {
     address alexa;
     address sheila;
 
+    ERC20 public constant L2VE = ERC20(0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4);
+
     function setUp() public {
         RPC_URL = vm.envString("BASE_RPC_URL");
         fork = vm.createFork(RPC_URL);
@@ -41,26 +43,43 @@ contract L2VEMultiSenderTest is Test {
     }
 
     // function testCanSendEtherToMultipleWallets() external {
-    //     address[] memory recipients = new address[](3);
+    //     vm.deal(bob, 20 ether); // send 20 ether to bob's wallet
+
+    //     address[] memory recipients = new address[](1);
     //     recipients[0] = john;
-    //     recipients[1] = alexa;
-    //     recipients[2] = sheila;
 
-    //     uint256[] memory values = new uint256[](3);
+    //     uint256[] memory values = new uint256[](1);
     //     values[0] = 2 ether;
-    //     values[1] = 5 ether;
-    //     values[2] = 10 ether;
 
-    //     // uint256 johnBalance = john.balance;
-    //     // uint256 alexaBalance = alexa.balance;
-    //     // uint256 sheilaBalance = sheila.balance;
+    //     console2.log(john.balance);
 
-    //     // vm.startPrank(bob);
-    //     // ms.sendEther(recipients, values);
-    //     // vm.stopPrank();
+    //     vm.startPrank(bob);
+    //     ms.sendEther{value: 3 ether}(recipients, values);
+    //     vm.stopPrank();
+
+    //     console2.log(john.balance);
 
     //     // assertEq(john.balance, johnBalance + 2 ether);
-    //     // assertEq(alexa.balance, alexaBalance + 5 ether);
-    //     // assertEq(sheila.balance, sheilaBalance + 10 ether);
     // }
+
+    function testCanSendTokenToMultipleWallets() external {
+        address[] memory recipients = new address[](3);
+        recipients[0] = john;
+        recipients[1] = alexa;
+        recipients[2] = sheila;
+
+        uint256[] memory values = new uint256[](3);
+        values[0] = 2 ether;
+        values[1] = 5 ether;
+        values[2] = 10 ether;
+
+        assertEq(L2VE.balanceOf(john), 0);
+        assertEq(L2VE.balanceOf(alexa), 0);
+        assertEq(L2VE.balanceOf(sheila), 0);
+
+        vm.startPrank(bob);
+        L2VE.approve(address(ms), 17 ether);
+        ms.sendToken(L2VE, recipients, values);
+        vm.stopPrank();
+    }
 }
