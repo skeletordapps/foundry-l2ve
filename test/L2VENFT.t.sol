@@ -167,7 +167,7 @@ contract L2VENFTTest is Test {
     }
 
     function testIsNotEligibleForRoundOneWithoutL2VEBalance() external {
-        deal(address(nft.L2VE()), bob, nft.MIN_AMOUNT_HOLD() - 1 ether);
+        deal(address(nft.L2VE()), bob, (nft.MIN_AMOUNT_HOLD() * 1e18) - 1 ether);
         assertFalse(nft.isEligibleForRoundOne(bob));
     }
 
@@ -175,8 +175,32 @@ contract L2VENFTTest is Test {
         assertFalse(nft.isEligibleForRoundTwo(bob));
     }
 
+    function transferTokensIn(address wallet, address token) internal {
+        uint256 decimals = ERC20(token).decimals();
+        deal(token, wallet, 69 * 10 ** decimals);
+    }
+
+    function transferTokensOut(address wallet, address token) internal {
+        vm.startPrank(wallet);
+        ERC20(token).transfer(mary, ERC20(token).balanceOf(wallet));
+        vm.stopPrank();
+    }
+
+    function testAllEligibilityScenarios() external tokensPermitted {
+        assertFalse(nft.isEligibleForRoundOne(bob));
+
+        address[] memory permittedTokens = nft.getPermittedTokens();
+
+        for (uint256 i = 0; i < permittedTokens.length; i++) {
+            transferTokensIn(bob, permittedTokens[i]);
+            assertTrue(nft.isEligibleForRoundOne(bob));
+            transferTokensOut(bob, permittedTokens[i]);
+            assertFalse(nft.isEligibleForRoundOne(bob));
+        }
+    }
+
     modifier isLoveHolder() {
-        deal(address(nft.L2VE()), bob, nft.MIN_AMOUNT_HOLD());
+        deal(address(nft.L2VE()), bob, nft.MIN_AMOUNT_HOLD() * 1e18);
         assertTrue(nft.isL2VEHolder(bob));
         _;
     }
@@ -214,7 +238,8 @@ contract L2VENFTTest is Test {
 
     modifier isCommunityHolder() {
         address[] memory permittedTokens = nft.getPermittedTokens();
-        deal(permittedTokens[0], mary, nft.MIN_AMOUNT_HOLD());
+        uint256 decimals = ERC20(permittedTokens[0]).decimals();
+        deal(permittedTokens[0], mary, nft.MIN_AMOUNT_HOLD() * 10 ** decimals);
         assertTrue(nft.isCommunityHolder(mary));
         _;
     }

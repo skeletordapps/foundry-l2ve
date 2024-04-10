@@ -15,11 +15,15 @@ import {console2} from "forge-std/Test.sol";
 
 import {IL2VENFT} from "./interfaces/IL2VENFT.sol";
 
+/**
+ * @dev Main contract for L2VE NFTs
+ * MIN_AMOUNT_HOLD is internally accounted with correct token's decimals
+ */
 contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownable, ReentrancyGuard, ERC721Burnable {
     /// ===== 1. Propery Variables =====
 
     uint256 private _tokenIdCounter;
-    uint256 public constant MIN_AMOUNT_HOLD = 69 ether;
+    uint256 public constant MIN_AMOUNT_HOLD = 69;
     uint256 public constant MAX_SUPPLY = 10_000;
     ERC20 public constant L2VE = ERC20(0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4);
 
@@ -123,9 +127,8 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
         if (!isRoundOne && mintedInRoundTwo) revert IL2VENFT.L2VENFT__Minted_Max_Permitted();
 
         uint256 tokensToMint;
-        bool isL2veHolder = L2VE.balanceOf(to) >= MIN_AMOUNT_HOLD;
 
-        if (isRoundOne && isL2veHolder) tokensToMint = 5;
+        if (isRoundOne && isL2VEHolder(to)) tokensToMint = 5;
         if (isRoundOne && isCommunityHolder(to)) tokensToMint = 2;
         if (!isRoundOne && mintedInRoundOne) tokensToMint = 2;
 
@@ -136,6 +139,15 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
         }
     }
 
+    /**
+     * @dev Mints a specified number of NFTs for the team wallet.
+     * Can only be called by the contract owner.
+     *
+     * @param to The address to mint tokens to (usually the team wallet).
+     * @param numOfTokens The number of NFTs to mint.
+     *
+     * Emits no event.
+     */
     function mintForTeam(address to, uint256 numOfTokens) external onlyOwner {
         if (numOfTokens == 0) revert IL2VENFT.L2VENFT__Cannot_Mint_Zero_Tokens();
         if (numOfTokens > 10) revert IL2VENFT.L2VENFT__Reached_Max_For_Tx();
@@ -286,7 +298,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
      * @return True if the address holds at least MIN_AMOUNT_HOLD L2VE tokens, False otherwise.
      */
     function isL2VEHolder(address wallet) public view returns (bool) {
-        return L2VE.balanceOf(wallet) >= MIN_AMOUNT_HOLD;
+        return L2VE.balanceOf(wallet) >= MIN_AMOUNT_HOLD * 1e18;
     }
 
     /**
@@ -299,7 +311,9 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
         bool hasBalance;
 
         for (uint256 i = 0; i < permittedTokens.length; i++) {
-            if (permittedTokens[i].balanceOf(wallet) >= MIN_AMOUNT_HOLD) {
+            uint256 decimals = permittedTokens[i].decimals();
+
+            if (permittedTokens[i].balanceOf(wallet) >= MIN_AMOUNT_HOLD * 10 ** decimals) {
                 hasBalance = true;
                 break;
             }
@@ -329,7 +343,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
      * @return True if the address is eligible for round one minting, False otherwise.
      */
     function isEligibleForRoundOne(address wallet) public view returns (bool) {
-        if (L2VE.balanceOf(wallet) >= MIN_AMOUNT_HOLD) return true;
+        if (isL2VEHolder(wallet)) return true;
         if (isCommunityHolder(wallet)) return true;
 
         return false;
