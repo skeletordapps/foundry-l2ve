@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
 import {L2VENFT} from "../src/L2VENFT.sol";
 import {DeployNFT} from "../script/DeployNFT.s.sol";
 import {IL2VENFT} from "../src/interfaces/IL2VENFT.sol";
@@ -33,7 +32,7 @@ contract L2VENFTTest is Test {
         vm.selectFork(fork);
 
         deployer = new DeployNFT();
-        nft = deployer.run(true);
+        nft = deployer.runForTests();
 
         owner = nft.owner();
 
@@ -90,7 +89,7 @@ contract L2VENFTTest is Test {
     function testRevertInitializeWithoutPermittedTokens() external {
         vm.startPrank(owner);
         vm.expectRevert(IL2VENFT.L2VENFT__Missing_Permitted_Tokens.selector);
-        nft.initialize(block.timestamp + 3 days, block.timestamp + 10 days);
+        nft.initialize(block.timestamp, block.timestamp + 3 days, block.timestamp + 10 days);
         vm.stopPrank();
 
         assertTrue(nft.paused());
@@ -127,11 +126,29 @@ contract L2VENFTTest is Test {
         _;
     }
 
+    function testRevertInitializeWithZeroValues() external tokensPermitted {
+        uint256 roundOneFinishAt = block.timestamp + 3 days;
+        uint256 roundTwoFinishAt = block.timestamp + 10 days;
+
+        vm.startPrank(owner);
+
+        vm.expectRevert(IL2VENFT.L2VENFT__Cannot_Be_Zero.selector);
+        nft.initialize(0, roundOneFinishAt, roundTwoFinishAt);
+
+        vm.expectRevert(IL2VENFT.L2VENFT__Cannot_Be_Zero.selector);
+        nft.initialize(block.timestamp, 0, roundTwoFinishAt);
+
+        vm.expectRevert(IL2VENFT.L2VENFT__Cannot_Be_Zero.selector);
+        nft.initialize(block.timestamp, roundOneFinishAt, 0);
+
+        vm.stopPrank();
+    }
+
     function testCanInitialize() external tokensPermitted {
         uint256 roundOneFinishAt = block.timestamp + 3 days;
         uint256 roundTwoFinishAt = block.timestamp + 10 days;
         vm.startPrank(owner);
-        nft.initialize(roundOneFinishAt, roundTwoFinishAt);
+        nft.initialize(block.timestamp, roundOneFinishAt, roundTwoFinishAt);
         vm.stopPrank();
 
         assertFalse(nft.paused());
@@ -141,9 +158,18 @@ contract L2VENFTTest is Test {
 
     modifier initialized() {
         vm.startPrank(owner);
-        nft.initialize(block.timestamp + 3 days, block.timestamp + 10 days);
+        nft.initialize(block.timestamp, block.timestamp + 3 days, block.timestamp + 10 days);
         vm.stopPrank();
         _;
+    }
+
+    function testRevertInitializeWhenAlreadyDid() external tokensPermitted initialized {
+        vm.startPrank(owner);
+
+        vm.expectRevert(IL2VENFT.L2VENFT__Already_Initialized.selector);
+        nft.initialize(block.timestamp, block.timestamp + 3 days, block.timestamp + 10 days);
+
+        vm.stopPrank();
     }
 
     modifier roundOneFinished() {

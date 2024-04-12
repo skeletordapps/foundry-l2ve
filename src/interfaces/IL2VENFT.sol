@@ -7,6 +7,9 @@ interface IL2VENFT {
         Two
     }
 
+    error L2VENFT__Cannot_Be_Zero();
+    error L2VENFT__Not_Initialized();
+    error L2VENFT__Already_Initialized();
     error L2VENFT__Cannot_Mint_Zero_Tokens();
     error L2VENFT__Reached_Max_Supply();
     error L2VENFT__Reached_Max_For_Tx();

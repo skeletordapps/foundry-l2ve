@@ -27,6 +27,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
     uint256 public constant MAX_SUPPLY = 10_000;
     ERC20 public immutable L2VE;
 
+    uint256 public startAt;
     uint256 public roundOneFinishAt;
     uint256 public roundTwoFinishAt;
     uint256 public totalBurned;
@@ -37,6 +38,11 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
     mapping(address wallet => mapping(IL2VENFT.Round round => uint256 numOfTokens)) tokensByRound;
     mapping(address wallet => uint256 numOfTokens) public tokens;
     mapping(address wallet => bool isBlacklisted) public blacklist;
+
+    modifier whenStarted() {
+        if (startAt == 0) revert IL2VENFT.L2VENFT__Not_Initialized();
+        _;
+    }
 
     /// ===== 2. Lifecycle Methods =====
 
@@ -93,8 +99,18 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
      * @param _roundOneFinishAt The timestamp representing the end of round one.
      * @param _roundTwoFinishAt The timestamp representing the end of round two.
      */
-    function initialize(uint256 _roundOneFinishAt, uint256 _roundTwoFinishAt) external onlyOwner nonReentrant {
+    function initialize(uint256 _startAt, uint256 _roundOneFinishAt, uint256 _roundTwoFinishAt)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        if (startAt > 0 || roundOneFinishAt > 0 || roundTwoFinishAt > 0) revert IL2VENFT.L2VENFT__Already_Initialized();
         if (permittedTokens.length == 0) revert IL2VENFT.L2VENFT__Missing_Permitted_Tokens();
+        if (_startAt == 0 || _roundOneFinishAt == 0 || _roundTwoFinishAt == 0) {
+            revert IL2VENFT.L2VENFT__Cannot_Be_Zero();
+        }
+
+        startAt = _startAt;
         roundOneFinishAt = _roundOneFinishAt;
         roundTwoFinishAt = _roundTwoFinishAt;
         unpause();
@@ -117,7 +133,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
      *
      * @param to The address to which the minted NFT will be assigned.
      */
-    function mint(address to) external whenNotPaused {
+    function mint(address to) external whenNotPaused whenStarted {
         if (blacklist[to]) revert IL2VENFT.L2VENFT__Wallet_Blacklisted();
 
         bool isRoundOne = block.timestamp <= roundOneFinishAt;
@@ -149,7 +165,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
      *
      * Emits no event.
      */
-    function mintForTeam(address to, uint256 numOfTokens) external onlyOwner {
+    function mintForTeam(address to, uint256 numOfTokens) external onlyOwner whenStarted {
         if (numOfTokens == 0) revert IL2VENFT.L2VENFT__Cannot_Mint_Zero_Tokens();
         if (numOfTokens > 10) revert IL2VENFT.L2VENFT__Reached_Max_For_Tx();
         if (totalSupply() + numOfTokens > MAX_SUPPLY) revert IL2VENFT.L2VENFT__Reached_Max_Supply();

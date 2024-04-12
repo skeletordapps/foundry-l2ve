@@ -5,10 +5,18 @@ import {Script} from "forge-std/Script.sol";
 import {L2VENFT} from "../src/L2VENFT.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {L2VEMock} from "../src/mocks/L2VEMock.sol";
+import {console2} from "forge-std/Test.sol";
 
 contract DeployNFT is Script {
-    function run(bool _testing) external returns (L2VENFT nft) {
-        uint256 privateKey = vm.envUint("NEW_PRIVATE_KEY");
+    address[] permittedTokens;
+    address degen;
+    address normie;
+    address brett;
+    address doginme;
+    address tybg;
+
+    function run() external returns (L2VENFT nft) {
+        uint256 privateKey = block.chainid == 31337 ? vm.envUint("MNEMONIC") : vm.envUint("NEW_PRIVATE_KEY");
         address l2veAddress;
 
         vm.startBroadcast(privateKey);
@@ -20,25 +28,28 @@ contract DeployNFT is Script {
             l2veAddress = 0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4;
         }
 
+        setPermittedTokens();
         nft = new L2VENFT(l2veAddress);
-
-        if (!_testing) {
-            address[] memory permittedTokens = setPermittedTokens();
-            nft.addPermittedTokens(permittedTokens);
-        }
+        nft.addPermittedTokens(permittedTokens);
 
         vm.stopBroadcast();
 
         return nft;
     }
 
-    function setPermittedTokens() internal returns (address[] memory) {
-        address degen;
-        address normie;
-        address brett;
-        address doginme;
-        address tybg;
+    function runForTests() external returns (L2VENFT nft) {
+        uint256 privateKey = vm.envUint("NEW_PRIVATE_KEY");
+        address l2veAddress = 0xA19328fb05ce6FD204D16c2a2A98F7CF434c12F4;
 
+        vm.startBroadcast(privateKey);
+
+        nft = new L2VENFT(l2veAddress);
+        vm.stopBroadcast();
+
+        return nft;
+    }
+
+    function setPermittedTokens() internal {
         if (block.chainid == 31337) {
             L2VEMock degenMock = new L2VEMock("DEGEN", "DEGEN");
             L2VEMock normieMock = new L2VEMock("NORMIE", "NORMIE");
@@ -59,14 +70,12 @@ contract DeployNFT is Script {
             tybg = 0x0d97F261b1e88845184f678e2d1e7a98D9FD38dE;
         }
 
-        address[] memory permittedTokens = new address[](5);
+        permittedTokens = new address[](5);
         permittedTokens[0] = degen;
         permittedTokens[1] = normie;
         permittedTokens[2] = brett;
         permittedTokens[3] = doginme;
         permittedTokens[4] = tybg;
-
-        return permittedTokens;
     }
 
     function testMock() public {}
