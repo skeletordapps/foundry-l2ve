@@ -48,7 +48,7 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
 
     constructor(address _l2ve) ERC721("L2VE NFT", "L2VE") Ownable(msg.sender) {
         L2VE = ERC20(_l2ve);
-        baseURI = "ipfs://Qmc1jomFCj4pcw95EuW3o5Pp7ERsL8qEcKNrDEi7iiQRsT/"; // Set initial baseURI
+        baseURI = "ipfs://QmQebU7XxvYeWgPzidUUZggrwDqVvTkNzrwR2ZqhKMWDec/"; // Set initial baseURI
         _tokenIdCounter++; // Start token ID at 1
         pause(); // Initialize it as paused
 
@@ -146,8 +146,8 @@ contract L2VENFT is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownabl
         uint256 tokensToMint;
 
         if (isRoundOne && isL2VEHolder(to)) tokensToMint = 5;
-        if (isRoundOne && isCommunityHolder(to)) tokensToMint = 2;
-        if (!isRoundOne && mintedInRoundOne) tokensToMint = 2;
+        else if (isRoundOne && isCommunityHolder(to)) tokensToMint = 2;
+        else if (!isRoundOne && mintedInRoundOne) tokensToMint = 2;
 
         if (totalSupply() + tokensToMint > MAX_SUPPLY) revert IL2VENFT.L2VENFT__Reached_Max_Supply();
 
