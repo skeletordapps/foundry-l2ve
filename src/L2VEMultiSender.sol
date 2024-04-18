@@ -8,7 +8,7 @@ contract L2VEMultiSender {
     event L2VEMultiSender__EtherSent(address indexed wallet, address[] recipients, uint256[] values);
     event L2VEMultiSender__TokenSent(address indexed wallet, ERC20 token, address[] recipients, uint256[] values);
 
-    function sendEther(address[] memory recipients, uint256[] memory values) external payable {
+    function sendEther(address[] memory recipients, uint256[] memory values) public payable {
         for (uint256 i = 0; i < recipients.length; i++) {
             payable(recipients[i]).transfer(values[i]);
         }

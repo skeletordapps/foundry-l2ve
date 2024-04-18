@@ -31,7 +31,6 @@ contract DeployNFT is Script {
         setPermittedTokens();
         nft = new L2VENFT(l2veAddress);
         nft.addPermittedTokens(permittedTokens);
-
         vm.stopBroadcast();
 
         return nft;
