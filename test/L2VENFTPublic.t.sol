@@ -16,6 +16,7 @@ contract L2VENFTPublicTest is Test {
     DeployNFTPublic deployer;
     L2VENFTPublic nft;
     IL2VENFTPhase1 l2veNftPhase1;
+    uint256 public totalSupplyPhase1 = 5791;
 
     address phase1;
     address owner;
@@ -54,6 +55,7 @@ contract L2VENFTPublicTest is Test {
         assertEq(nft.name(), "L2VE NFT PUBLIC");
         assertEq(nft.symbol(), "L2VEP");
         assertEq(nft.totalSupply(), 0);
+        assertEq(nft.overallSupply(), totalSupplyPhase1);
         assertTrue(nft.paused());
     }
 
@@ -143,6 +145,7 @@ contract L2VENFTPublicTest is Test {
 
         assertEq(nft.totalSupply(), supplyExpected);
         assertEq(nft.tokens(bob), 5);
+        assertEq(nft.overallSupply(), totalSupplyPhase1 + 5);
     }
 
     modifier minted(address wallet) {
@@ -202,6 +205,7 @@ contract L2VENFTPublicTest is Test {
 
         assertEq(nft.tokens(mary), 10);
         assertEq(nft.totalSupply(), expectedSupply);
+        assertEq(nft.overallSupply(), totalSupplyPhase1 + 10);
     }
 
     function testOwnerCanPause() external initialized {
@@ -222,6 +226,7 @@ contract L2VENFTPublicTest is Test {
         vm.stopPrank();
 
         assertEq(nft.totalSupply(), 5);
+        assertEq(nft.overallSupply(), totalSupplyPhase1 + 5);
         assertEq(nft.totalBurned(), 250);
     }
 

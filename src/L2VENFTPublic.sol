@@ -33,6 +33,7 @@ contract L2VENFTPublic is
     ERC20 public immutable L2VE;
 
     uint256 public startAt;
+    uint256 public totalSupplyPhase1;
     uint256 public totalBurned;
     string public baseURI;
     address public l2veNftPhase1;
@@ -51,7 +52,11 @@ contract L2VENFTPublic is
         L2VE = ERC20(_l2ve);
         baseURI = "ipfs://QmfQVrmH3MwGtbUXUbinphpFBmqKcXGAsb1P2eMCK48xW1/";
         l2veNftPhase1 = _l2veNft;
-        _tokenIdCounter = IL2VENFTPhase1(_l2veNft).totalSupply() + 1; // Starts from past contract stopped
+
+        uint256 supply = overallSupply();
+        totalSupplyPhase1 = supply;
+        _tokenIdCounter = supply + 1; // Starts where past contract stopped
+
         pause(); // Initialize it as paused
 
         emit IL2VENFT.Created(MAX_SUPPLY);
@@ -125,7 +130,9 @@ contract L2VENFTPublic is
     function mint(address to) external whenNotPaused whenStarted {
         if (blacklist[to]) revert IL2VENFT.L2VENFT__Wallet_Blacklisted();
         if (tokens[to] == MAX_PERMITTED) revert IL2VENFT.L2VENFT__Minted_Max_Permitted();
-        if (totalSupply() + MAX_PERMITTED > MAX_SUPPLY) revert IL2VENFT.L2VENFT__Reached_Max_Supply();
+        if (overallSupply() + MAX_PERMITTED > MAX_SUPPLY) {
+            revert IL2VENFT.L2VENFT__Reached_Max_Supply();
+        }
 
         for (uint256 i = 0; i < MAX_PERMITTED; i++) {
             _mint(to);
@@ -144,7 +151,7 @@ contract L2VENFTPublic is
     function mintForTeam(address to, uint256 numOfTokens) external onlyOwner whenStarted {
         if (numOfTokens == 0) revert IL2VENFT.L2VENFT__Cannot_Mint_Zero_Tokens();
         if (numOfTokens > 10) revert IL2VENFT.L2VENFT__Reached_Max_For_Tx();
-        if (totalSupply() + numOfTokens > MAX_SUPPLY) revert IL2VENFT.L2VENFT__Reached_Max_Supply();
+        if (overallSupply() + numOfTokens > MAX_SUPPLY) revert IL2VENFT.L2VENFT__Reached_Max_Supply();
 
         for (uint256 i = 0; i < numOfTokens; i++) {
             _mint(to);
@@ -191,7 +198,7 @@ contract L2VENFTPublic is
         uint256 batchSize = 250;
 
         // Calculate tokens to burn (capped by remaining supply)
-        uint256 tokensToBurn = Math.min(batchSize, MAX_SUPPLY - totalSupply());
+        uint256 tokensToBurn = Math.min(batchSize, MAX_SUPPLY - overallSupply());
 
         for (uint256 i = 0; i < tokensToBurn; i++) {
             uint256 tokenId = _tokenIdCounter;
@@ -267,5 +274,9 @@ contract L2VENFTPublic is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function overallSupply() public view returns (uint256) {
+        return totalSupply() + IL2VENFTPhase1(l2veNftPhase1).totalSupply();
     }
 }
