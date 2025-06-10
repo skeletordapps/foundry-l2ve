@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity 0.8.29;
 
-import {console2} from "forge-std/Test.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -9,13 +8,14 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IL2VEFlipCoin} from "./interfaces/IL2VEFlipCoin.sol";
 
+// aderyn-ignore-next-line(centralization-risk)
 contract L2VEFlipCoin is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for ERC20;
 
+    address public immutable l2veAddress;
+    address public immutable multisig;
     uint256 public price = 100 ether;
     uint256 public maxTicketsPerTime = 5;
-    address public l2veAddress;
-    address public multisig;
     uint256 public accumulatedLosses;
     uint256 public totalWins;
     uint256 public totalLosses;
@@ -29,7 +29,7 @@ contract L2VEFlipCoin is Ownable, Pausable, ReentrancyGuard {
         _pause();
     }
 
-    function buy(address wallet, uint256 numOfTickets) external whenNotPaused nonReentrant {
+    function buy(address wallet, uint256 numOfTickets) external nonReentrant whenNotPaused {
         require(numOfTickets > 0, "Insufficient number of tickets");
         require(ERC20(l2veAddress).balanceOf(wallet) >= numOfTickets * price, "Insufficient balance");
 

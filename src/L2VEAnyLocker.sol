@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity 0.8.29;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {console2} from "forge-std/Test.sol";
 
+// aderyn-ignore-next-line(centralization-risk)
 contract L2VEAnyLocker is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for ERC20;
 
@@ -34,8 +34,8 @@ contract L2VEAnyLocker is Ownable, Pausable, ReentrancyGuard {
 
     function lock(address _wallet, address _token, uint256 _amount, uint256 _lockUntil)
         external
-        whenNotPaused
         nonReentrant
+        whenNotPaused
     {
         require(_token != address(0), "Invalid Token");
         ERC20(_token).safeTransferFrom(_wallet, address(this), _amount);
@@ -68,10 +68,12 @@ contract L2VEAnyLocker is Ownable, Pausable, ReentrancyGuard {
         ERC20(_token).safeTransfer(lockData.wallet, lockData.amount);
     }
 
+    // aderyn-ignore-next-line(centralization-risk)
     function pause() external onlyOwner {
         _pause();
     }
 
+    // aderyn-ignore-next-line(centralization-risk)
     function unpause() external onlyOwner {
         _unpause();
     }
